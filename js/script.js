@@ -1,15 +1,30 @@
 (() => {
-    const consultaCEP = fetch('https://viacep.com.br/ws/08030760/json/')
-        .then(resposta => resposta.json())
-        .then(r => {
-            if (r.erro) {
-                throw Error('Esse cep não existe!');
-            } else {
-                console.log(r);
-            }
-        })
-        .catch(erro => console.log(erro))
-        .finally(mensagem => console.log('Processamento concluido!'));
+    const mensagemErro = document.querySelector('[data-erro]');
 
-    console.log(consultaCEP)
+    async function buscaEndereco(cep) {
+        try {
+            const consultaCEP = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const consultaCEPConvertida = await consultaCEP.json();
+            if (consultaCEPConvertida.erro) {
+                throw Error(`O CEP não existe!`)
+            } else {
+                console.log(consultaCEPConvertida);
+            }
+            const endereco = document.querySelector('#endereco');
+            const bairro = document.querySelector('#bairro');
+            const cidade = document.querySelector('#cidade');
+            endereco.value = consultaCEPConvertida.logradouro;
+            bairro.value = consultaCEPConvertida.bairro;
+            cidade.value = consultaCEPConvertida.localidade;
+            mensagemErro.innerHTML = ``;
+
+            return consultaCEPConvertida;
+        } catch (erro) {
+            mensagemErro.innerHTML = `<p class="erro">CEP: ${cep} inválido.</p>`;
+            console.log(erro);
+        }
+    }
+
+    const cep = document.querySelector('#cep');
+    cep.addEventListener('focusout', () => buscaEndereco(cep.value))
 })();
